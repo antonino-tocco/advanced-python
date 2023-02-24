@@ -18,6 +18,9 @@ You'll edit this file in Tasks 3a and 3c.
 """
 import operator
 
+def _default_transform_fn(value):
+    return value
+
 
 class UnsupportedCriterionError(NotImplementedError):
     """A filter criterion is unsupported."""
@@ -38,7 +41,8 @@ class AttributeFilter:
     Concrete subclasses can override the `get` classmethod to provide custom
     behavior to fetch a desired attribute from the given `CloseApproach`.
     """
-    def __init__(self, op, value):
+
+    def __init__(self, op, value, transform_fn=_default_transform_fn):
         """Construct a new `AttributeFilter` from an binary predicate and a reference value.
 
         The reference value will be supplied as the second (right-hand side)
@@ -51,6 +55,7 @@ class AttributeFilter:
         """
         self.op = op
         self.value = value
+        self.transform_fn = transform_fn
 
     def __call__(self, approach):
         """Invoke `self(approach)`."""
@@ -108,8 +113,44 @@ def create_filters(
     :param hazardous: Whether the NEO of a matching `CloseApproach` is potentially hazardous.
     :return: A collection of filters for use with `query`.
     """
+
     # TODO: Decide how you will represent your filters.
-    return ()
+    items = {}
+    if date:
+        items['date'] = AttributeFilter(operator.eq, date, transform_fn=lambda x: x.date())
+    if start_date:
+        items['start_date'] = AttributeFilter(operator.le, start_date, transform_fn=lambda x: x.date())
+    if end_date:
+        items['end_date'] = AttributeFilter(operator.ge, end_date, transform_fn=lambda x: x.date())
+    if distance_min:
+        items['distance_min'] = AttributeFilter(operator.le, distance_min)
+    if distance_max:
+        items['distance_max'] = AttributeFilter(operator.ge, distance_max)
+    if velocity_min:
+        items['velocity_min'] = AttributeFilter(operator.le, velocity_min)
+    if velocity_max:
+        items['velocity_max'] = AttributeFilter(operator.ge, velocity_max)
+    if diameter_min:
+        items['diameter_min'] = AttributeFilter(operator.le, diameter_min)
+    if diameter_max:
+        items['diameter_max'] = AttributeFilter(operator.ge, diameter_max)
+    if hazardous is not None:
+        items['hazardous'] = AttributeFilter(operator.eq, hazardous)
+    return {
+        'key_mappings': {
+            'date': 'time',
+            'start_date': 'time',
+            'end_date': 'time',
+            'distance_min': 'distance',
+            'distance_max': 'distance',
+            'velocity_min': 'velocity',
+            'velocity_max': 'velocity',
+            'diameter_min': 'neo.diameter',
+            'diameter_max': 'neo.diameter',
+            'hazardous': 'neo.hazardous',
+        },
+        'items': items
+    }
 
 
 def limit(iterator, n=None):
@@ -122,4 +163,6 @@ def limit(iterator, n=None):
     :yield: The first (at most) `n` values from the iterator.
     """
     # TODO: Produce at most `n` values from the given iterator.
-    return iterator
+    for i, item in enumerate(iterator):
+        if not n or i < n:
+            yield item

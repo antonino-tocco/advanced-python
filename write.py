@@ -28,6 +28,21 @@ def write_to_csv(results, filename):
         'datetime_utc', 'distance_au', 'velocity_km_s',
         'designation', 'name', 'diameter_km', 'potentially_hazardous'
     )
+    with open(filename, 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        #WRITE HEADER FLUSH THE HEADER TO THE CSV FILE
+        writer.writeheader()
+        for result in results:
+            #WRITE ROW WITH DICT THAT FOLLOWS THE DATA SPECIFICATION
+            writer.writerow({
+                'datetime_utc': result.time,
+                'distance_au': result.distance,
+                'velocity_km_s': result.velocity,
+                'designation': result._designation,
+                'name': result.neo.name,
+                'diameter_km': result.neo.diameter,
+                'potentially_hazardous': result.neo.hazardous
+            })
     # TODO: Write the results to a CSV file, following the specification in the instructions.
 
 
@@ -43,3 +58,15 @@ def write_to_json(results, filename):
     :param filename: A Path-like object pointing to where the data should be saved.
     """
     # TODO: Write the results to a JSON file, following the specification in the instructions.
+    with open(filename, 'w') as f:
+        json.dump(list(map(lambda item: {
+            'datetime_utc': item.time_str,
+            'distance_au': item.distance,
+            'velocity_km_s': item.velocity,
+            'neo': {
+                'designation': item.neo.designation,
+                'name': item.neo.name,
+                'diameter_km': item.neo.diameter,
+                'potentially_hazardous': item.neo.hazardous
+            }
+        }, results)), f)

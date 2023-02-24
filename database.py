@@ -11,6 +11,7 @@ data on NEOs and close approaches extracted by `extract.load_neos` and
 
 You'll edit this file in Tasks 2 and 3.
 """
+import operator
 
 
 class NEODatabase:
@@ -21,6 +22,7 @@ class NEODatabase:
     help fetch NEOs by primary designation or by name and to help speed up
     querying for close approaches that match criteria.
     """
+
     def __init__(self, neos, approaches):
         """Create a new `NEODatabase`.
 
@@ -42,6 +44,13 @@ class NEODatabase:
         self._neos = neos
         self._approaches = approaches
 
+        for neo in neos:
+            # GIVE A LIST OF INDEX, APPROACH FOR APPROACH MATCHING NEO DESTINATION
+            neo_approaches = list(filter(lambda item: item[1]._designation == neo.designation, enumerate(approaches)))
+            neo.approaches = [approache[1] for approache in neo_approaches]
+            for approache in neo_approaches:
+                self._approaches[approache[0]].neo = neo
+
         # TODO: What additional auxiliary data structures will be useful?
 
         # TODO: Link together the NEOs and their close approaches.
@@ -60,7 +69,8 @@ class NEODatabase:
         :return: The `NearEarthObject` with the desired primary designation, or `None`.
         """
         # TODO: Fetch an NEO by its primary designation.
-        return None
+        _neo = filter(lambda neo: neo.designation == designation, self._neos)
+        return _neo[0] if len(_neo) > 0 else None
 
     def get_neo_by_name(self, name):
         """Find and return an NEO by its name.
@@ -77,9 +87,10 @@ class NEODatabase:
         :return: The `NearEarthObject` with the desired name, or `None`.
         """
         # TODO: Fetch an NEO by its name.
-        return None
+        _neo = filter(lambda neo: neo.name == name, self._neos)
+        return _neo[0] if len(_neo) > 0 else None
 
-    def query(self, filters=()):
+    def query(self, filters={}):
         """Query close approaches to generate those that match a collection of filters.
 
         This generates a stream of `CloseApproach` objects that match all of the
@@ -94,5 +105,11 @@ class NEODatabase:
         :return: A stream of matching `CloseApproach` objects.
         """
         # TODO: Generate `CloseApproach` objects that match all of the filters.
+        key_mappings = filters['key_mappings']
+        items = filters['items']
         for approach in self._approaches:
-            yield approach
+            #USE GENERATOR INSTEAD OF LIST COMPREHENSION
+            if all((filter.op(
+                    filter.value, filter.transform_fn(operator.attrgetter(key_mappings[key])(approach))
+            ) for key, filter in items.items())):
+                yield approach
