@@ -48,7 +48,10 @@ class NearEarthObject:
         # and a missing diameter being represented by `float('nan')`.
         self.designation = designation
         self.name = name if name else None
-        self.diameter = float(diameter) if diameter else float('nan')
+        try:
+            self.diameter = float(diameter) if diameter else float('nan')
+        except ValueError:
+            self.diameter = float('nan')
         self.hazardous = True if hazardous == 'Y' else False
 
         # Create an empty initial collection of linked approaches.
@@ -100,8 +103,14 @@ class CloseApproach:
         # The `cd_to_datetime` function will be useful.
         self._designation = designation
         self.time = cd_to_datetime(time)
-        self.distance = float(distance) if distance else float('nan')
-        self.velocity = float(velocity) if velocity else float('nan')
+        try:
+            self.distance = float(distance) if distance else float('nan')
+        except ValueError:
+            self.distance = float('nan')
+        try:
+            self.velocity = float(velocity) if velocity else float('nan')
+        except ValueError:
+            self.velocity = float('nan')
 
         # Create an attribute for the referenced NEO, originally None.
         self.neo = None
