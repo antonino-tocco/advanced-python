@@ -16,6 +16,7 @@ iterator.
 
 You'll edit this file in Tasks 3a and 3c.
 """
+import itertools
 import operator
 
 def _default_transform_fn(value):
@@ -161,6 +162,6 @@ def limit(iterator, n=None):
     :param n: The maximum number of values to produce.
     :yield: The first (at most) `n` values from the iterator.
     """
-    for i, item in enumerate(iterator):
-        if not n or i < n:
-            yield item
+    if not n:
+        return (item for item in iterator)
+    return itertools.islice(iterator, n)

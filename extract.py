@@ -41,7 +41,7 @@ def load_approaches(cad_json_path) -> Collection[CloseApproach]:
     :return: A collection of `CloseApproach`es.
     """
     with open(cad_json_path, 'r') as cad_json_file:
-        items = list(map(lambda item: CloseApproach(
-            designation=item[0], time=item[3], distance=item[4], velocity=item[7]
-        ), json.load(cad_json_file)['data']))
+        items = list(map(lambda item: CloseApproach(*(
+            item[0], item[3], item[4], item[7]
+        )), json.load(cad_json_file)['data']))
     return items
